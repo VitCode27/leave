@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07090d" />
+    <title>暂离 / LEAVE</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <script type="module" crossorigin src="/assets/index-BgB6USuQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CeV9HIy8.css">
+  </head>
+  <body>
+    <div id="app">
+      <!-- 3D 舞台 -->
+      <canvas id="scene"></canvas>
+      <!-- 笔记本屏幕：桌面界面由 CSS3D 投影到 3D 屏幕平面 -->
+      <div id="screen-layer"></div>
+      <div id="scene-grade" aria-hidden="true"></div>
+      <div id="scene-vignette" aria-hidden="true"></div>
+
+      <!-- 顶部 HUD -->
+      <header id="hud" class="hidden">
+        <div class="hud-left">
+          <div class="brandmark">
+            <span class="brandmark-cn">暂离</span>
+            <span class="brandmark-en">LEAVE</span>
+          </div>
+          <div class="hud-case">
+            <span class="hud-label">调查员</span>
+            <span id="hud-codename">—</span>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div id="timer" class="timer">
+            <span class="timer-label">会话窗口</span>
+            <span id="timer-value">20:00</span>
+          </div>
+          <button id="sound-toggle" class="icon-btn" type="button" aria-label="切换声音">
+            <span id="sound-icon">◍</span>
+          </button>
+          <button id="step-away" class="ghost-btn" type="button">离开座位</button>
+        </div>
+      </header>
+
+      <!-- 开场：调查员登记 -->
+      <section id="intro" class="intro">
+        <div class="intro-grid" aria-hidden="true"></div>
+        <div class="intro-scan" aria-hidden="true"></div>
+        <div class="intro-gaze-field" aria-hidden="true">
+          <span class="gaze-eye"></span>
+        </div>
+        <div class="intro-content">
+          <div class="intro-frame" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="intro-meta">
+            <span class="meta-stamp">CASE 1014</span>
+            <span class="meta-rule" aria-hidden="true"></span>
+            <span class="meta-place">共享办公区 B-17</span>
+            <span class="meta-time">19:41</span>
+          </div>
+          <h1 class="intro-title">
+            <span class="title-ghost" aria-hidden="true">LEAVE</span>
+            <span class="title-cn">暂离</span>
+            <span class="title-side" aria-hidden="true">
+              <span class="title-en">LEAVE</span>
+              <span class="title-tag">案卷 1014</span>
+            </span>
+          </h1>
+
+          <div class="intro-gaze" role="heading" aria-level="2" aria-label="你在看屏幕，谁在看你">
+            <span class="gaze-kicker" aria-hidden="true">
+              <span class="gaze-ch" style="--i: 0">你</span><span class="gaze-ch" style="--i: 1">在</span><span class="gaze-ch" style="--i: 2">看</span><span class="gaze-ch" style="--i: 3">屏</span><span class="gaze-ch" style="--i: 4">幕</span><span class="gaze-ch" style="--i: 5">，</span>
+            </span>
+            <span class="gaze-line gaze-line--who" data-text="谁在看你" aria-hidden="true">
+              <span class="gaze-ch" style="--i: 6">谁</span><span class="gaze-ch" style="--i: 7">在</span><span class="gaze-ch" style="--i: 8">看</span><span class="gaze-ch" style="--i: 9">你</span><span class="gaze-caret"></span>
+            </span>
+          </div>
+
+          <div class="intro-brief">
+            <p class="brief-hook">电脑没有锁。离开的人，还会回来吗？</p>
+            <p class="brief-scene">
+              <span class="timecode">19:41</span>，共享办公区只剩一台亮着的电脑。林岸不在座位上。便签写着：<span class="note-quote">「别碰邮件。」</span>
+            </p>
+            <p class="brief-ask">她在向你求救，还是在等你接手？</p>
+            <p class="brief-how">
+              从邮件、后台和加密文件里拼出真相，决定证据该交给谁。每一次点击，都可能让你更接近真相，也更像共犯。
+            </p>
+          </div>
+
+          <form id="enroll-form" class="enroll" autocomplete="off">
+            <label class="field-label" for="codename">调查员代号</label>
+            <div class="field-row">
+              <input
+                id="codename"
+                name="codename"
+                type="text"
+                maxlength="14"
+                placeholder="输入一个代号"
+                spellcheck="false"
+                autocomplete="off"
+              />
+              <button id="start-btn" type="submit" class="primary-btn">
+                <span>开始调查</span>
+                <span class="btn-arrow">↗</span>
+              </button>
+            </div>
+            <p class="field-hint">
+              请填写调查员代号。不要输入真实个人信息。你写的名字，游戏里的某些人可能会记住。
+            </p>
+          </form>
+
+          <!-- 元设计 5：上一次结局留下的持久痕迹（由 main.js 根据 localStorage 填充） -->
+          <div id="intro-trace" class="intro-trace" hidden></div>
+
+          <div class="intro-foot">
+            <div class="audio-note">
+              <span class="pulse-dot"></span>
+              建议戴耳机 · 环境音与键盘声已启用
+            </div>
+            <div class="render-note">
+              <span class="render-tech">WebGL · 实时 3D ·</span>
+              <span class="render-hl">自由探索</span>
+              <span class="render-sep" aria-hidden="true">·</span>
+              <span class="render-hl">多重结局</span>
+            </div>
+            <p class="intro-author">
+              <span class="author-label">作者</span>
+              <span class="author-name">by Vit.jm</span>
+            </p>
+          </div>
+        </div>
+        <div class="intro-scroll-hint">向下滚动无用。这里只有一张桌子。</div>
+      </section>
+
+      <!-- 桌面（游戏主界面） -->
+      <main id="desktop" class="desktop hidden" aria-hidden="true">
+        <div class="desk-topbar">
+          <div class="desk-tabs" id="desk-tabs"></div>
+          <div class="desk-url" id="desk-url">
+            <span class="url-lock">⌂</span>
+            <span id="url-text">intranet.local/mail</span>
+            <span class="url-edit">可编辑</span>
+          </div>
+          <div class="desk-win-controls" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="desk-body" id="desk-body"></div>
+        <!-- 剧本 1.1：进入桌面后右下角的便签 -->
+        <aside id="desk-note" class="desk-note" hidden>
+          <button id="desk-note-close" class="desk-note-close" type="button" aria-label="收起便签">×</button>
+          <span class="desk-note-pin">TODAY · 18:47</span>
+          <p class="desk-note-body">
+            如果你看到这行字，说明我没锁屏。<br />
+            别碰邮件。
+          </p>
+          <span class="desk-note-who">—— 林</span>
+        </aside>
+      </main>
+
+      <!-- 操作面板：独立于 3D 屏幕，浮在视口右下角 -->
+      <div class="desk-dock hidden" id="desk-dock" role="toolbar" aria-label="操作面板"></div>
+
+      <!-- K 的聊天窗口 -->
+      <aside id="k-chat" class="k-chat hidden" aria-live="polite">
+        <div class="k-head">
+          <div class="k-avatar">K</div>
+          <div class="k-meta">
+            <div class="k-name">K</div>
+            <div class="k-status"><span class="pulse-dot"></span>正在输入…</div>
+          </div>
+          <button id="k-close" class="k-close" type="button" aria-label="收起聊天">–</button>
+        </div>
+        <div id="k-log" class="k-log"></div>
+        <div id="k-choices" class="k-choices"></div>
+      </aside>
+
+      <!-- 系统浮层提示（通知、日志） -->
+      <div id="toasts" class="toasts" aria-live="polite"></div>
+
+      <!-- 模态：压缩包密码、结局等 -->
+      <div id="modal-layer" class="modal-layer hidden"></div>
+
+      <!-- 场景过渡 -->
+      <div id="fade" class="fade"></div>
+      <div id="boot-error" class="boot-error hidden"></div>
+    </div>
+  </body>
+</html>
